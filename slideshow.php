@@ -1,6 +1,6 @@
 <?php  
 /* 
-    Plugin Name: Homepage Slideshow  
+    Plugin Name: wp-Architect Homepage Slideshow  
     Description: Homepage Slideshow for WP-Architect Theme
     Author: Matthew Ell 
     Version: 1.0 
