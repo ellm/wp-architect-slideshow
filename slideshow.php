@@ -27,9 +27,12 @@ function wp_arch_ss_init() {
         ),
         'description'  => 'Nivo Homepage Slideshow',
         'exclude_from_search' => true,
+        'hierarchical' => true,
         'supports' => array(  
             'title',  
-            'thumbnail'
+            'thumbnail',
+            'custom-fields',
+            'page-attributes'
         )
     ); 
     // http://codex.wordpress.org/Function_Reference/register_post_type
@@ -37,61 +40,6 @@ function wp_arch_ss_init() {
 }  
 
 add_action('init', 'wp_arch_ss_init');
-
-
-// Creates Admin Options sub-page
-//http://codex.wordpress.org/Function_Reference/add_submenu_page
-
-// add_action('admin_menu', 'register_my_custom_submenu_page');
-
-// function register_my_custom_submenu_page() {
-//     add_submenu_page( 'edit.php?post_type=np_images', 'Settings', 'Settings', 'manage_options', 'my-custom-submenu-page', 'my_custom_submenu_page_callback' ); 
-// }
-
-// function my_custom_submenu_page_callback() {
-//     echo '<div class="wrap">';
-//     echo '<h2>Slideshow Settings</h2>';
-//     echo '</div>';
-
-// }
-
-// Creates Tables for Settings Pages
-// http://codex.wordpress.org/Creating_Tables_with_Plugins
-
-//     global $archss_db_version;
-//     $archss_db_version = "1.0";
-
-//     function archss_install() {
-//         global $wpdb;
-//         global $archss_db_version;
-
-//         $table_name = $wpdb->prefix . "archss";
-      
-//         $sql = "CREATE TABLE $table_name (
-//             id mediumint(9) NOT NULL AUTO_INCREMENT,
-//             time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
-//             name tinytext NOT NULL,
-//             text text NOT NULL,
-//             url VARCHAR(55) DEFAULT '' NOT NULL,
-//             UNIQUE KEY id (id)
-//         );";
-
-//         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-//         dbDelta( $sql );
- 
-//     add_option( "archss_db_version", $archss_db_version );
-// }
-
-//     function archss_install_data() {
-//         global $wpdb;
-//         $welcome_name = "Mr. WordPress";
-//         $welcome_text = "Congratulations, you just completed the installation!";
-
-//         $rows_affected = $wpdb->insert( $table_name, array( 'time' => current_time('mysql'), 'name' => $welcome_name, 'text' => $welcome_text ) );
-//     }
-
-// register_activation_hook( __FILE__, 'archss_install' );
-// register_activation_hook( __FILE__, 'archss_install_data' );
 
 // Enqueue Styles and Scripts 
 // http://codex.wordpress.org/Determining_Plugin_and_Content_Directories
@@ -116,7 +64,7 @@ add_action('wp_enqueue_scripts', 'wp_arch_ss_enqueue');
 
 
 // // Create Image Size for Slides
-add_image_size('np_function', 1024, 399, true); 
+add_image_size('np_function', 1280, 425, true); 
 
 // // Thumbnail Support
 add_theme_support( 'post-thumbnails' ); 
@@ -124,14 +72,15 @@ add_theme_support( 'post-thumbnails' );
 // // // Create Slideshow
 function np_function( $atts) { 
 
-    // extract( shortcode_atts ( array(
-    //     'width' => '',
-    //     'height' => '',
-    //     ), $atts ) ); 
+    extract( shortcode_atts ( array(
+        'width' => '',
+        'height' => '',
+        ), $atts ) ); 
     
     $args = array(  
         'post_type' => 'np_images',  
-        'posts_per_page' => 5 
+        'posts_per_page' => 5,
+        'orderby' => 'menu_order'
     );  
 
     $result = '<section id="slideshow" class="theme-default">';  
@@ -139,15 +88,28 @@ function np_function( $atts) {
   
     // The Query
     //http://codex.wordpress.org/Function_Reference/WP_Query
-    $loop = new WP_Query($args);  
+    $query = new WP_Query($args);
 
     // The Loop
-    while ($loop->have_posts()) {  
-        $loop->the_post();  
-        $the_url = wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $type);  
-        $result .='<img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/>';
-    }  
+    if ( $query->have_posts() ) {
+        while ($query->have_posts()) {  
+            $query->the_post();
+            $id = get_the_ID();
+            $type = array( 1280,425);
+            $the_url = wp_get_attachment_image_src(get_post_thumbnail_id($id), $type);
+            $the_link = get_post_meta($id, 'link', true);
 
+            if ($the_link == '') {
+                $result .='<img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/';
+            } else {
+                $result .='<a href="'.$the_link.'">'.'<img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/></a>';
+            }
+        }
+    } else {
+        // no slides found
+    }  
+    /* Restore original Post Data */
+    wp_reset_postdata();
 
     $result .= '</div>';   
     $result .='</section>';  
