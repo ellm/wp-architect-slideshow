@@ -100,7 +100,7 @@ function np_function( $atts) {
             $the_link = get_post_meta($id, 'link', true);
 
             if ($the_link == '') {
-                $result .='<img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/';
+                $result .='<img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/>';
             } else {
                 $result .='<a href="'.$the_link.'">'.'<img title="'.get_the_title().'" src="' . $the_url[0] . '" alt=""/></a>';
             }
