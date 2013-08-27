@@ -79,9 +79,10 @@ function np_function( $atts) {
     
     $args = array(  
         'post_type' => 'np_images',  
-        'posts_per_page' => 5,
-        'orderby' => 'menu_order'
-    );  
+        'posts_per_page' => -1,
+        'orderby' => 'menu_order',
+        'order' => 'ASC'
+    );   
 
     $result = '<section id="slideshow" class="theme-default">';  
     $result .= '<div class="nivoSlider inner">';
